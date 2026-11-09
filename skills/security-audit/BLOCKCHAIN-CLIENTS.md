@@ -12,9 +12,9 @@ Split large targets by state transition, signing/proof verification, consensus, 
 - Start with a source-grounded protocol profile. Name the pinned specification, reference, test vector, or executable model that defines the rule; a client is not a universal oracle.
 - Separate consensus validity from local admission, mempool, indexing, API, and implementation choices. A difference outside the protocol rule is not a consensus split.
 - For every claim, trace an untrusted transaction, peer, proposer, signer, proof, or snapshot through validation to the accepted state, authority decision, persisted state, or resource effect.
-- State the protocol roles, membership, fault assumptions, thresholds, ordering, finality, and version/activation scope before calling a behavior unsafe. Do not infer defaults.
-- Canonical bytes, signatures, proofs, and hashes must bind the intended object, context, key or role, version, and commitment; encoding validity alone is not authorization.
-- Account for exact asset units, issuance, fees, rewards, burns, and rounding. Failed-operation effects follow the profile; do not import a generic transaction invariant.
+- State the roles, fault assumptions, membership, ordering, finality, and activation rules relevant to the claim; mark absent mechanisms as not applicable instead of inferring defaults.
+- Where hashing, signing, or proofs are present, verify binding to the intended object, context, key or role, version, and commitment; encoding validity alone is not authorization.
+- Where asset accounting is present, account for exact units, issuance, fees, rewards, burns, and rounding. Failed-operation effects follow the profile; do not import a generic transaction invariant.
 - Bound any network or economic claim to the attacker capability and topology shown by source or a bounded fixture. One-node observation does not establish a network-wide deployed effect; bounded multi-node or model evidence can establish a safety/liveness violation under explicit fault and topology assumptions, while live deployment impact remains conditional.
 - Require only profile-defined guarantees: do not impose local-pool equality, fork absence, a fixed quorum, all-or-nothing failed operations, arbitrary reorder invariance, or synchronized wall clocks.
 - Keep decisive checks local and bounded. Differential agreement is corroboration, not proof, and a mismatch is a lead until the governing rule and security effect are established.
@@ -35,6 +35,8 @@ Follow every debit, credit, mint, burn, fee, reward, escrow, withdrawal, and ass
 
 **Consensus safety and liveness under stated faults**
 Map proposals, votes, locks, rounds or views, timeouts, leader changes, thresholds, membership snapshots, equivocation handling, and finality. Test only the safety and liveness claims actually made by the profile and its fault model. A local disagreement or unusual fork is not enough without the protocol condition and bounded effect.
+
+For liveness, establish the required synchrony, delivery, and scheduling assumptions and show a violated progress guarantee or a reachable condition that prevents progress. A finite delay alone does not disprove eventual progress.
 
 **Malicious peer, synchronization, and fork-choice behavior**
 Follow handshake identity, advertised headers or blocks, locators, proofs, checkpoints, peer scoring, invalid-data handling, reorg or fork choice, and recovery from an eclipsed or stale view. Name the malicious peer's permitted capability and show the affected state, authority, peer set, or resource; do not extrapolate a local peer result to the whole network.
@@ -62,8 +64,11 @@ Where cumulative work, weight, checkpoints, or a comparable score selects histor
 **Weighted, quorum, and federated membership**
 Review validator/member identity, weights, threshold calculation, uniqueness, membership snapshots, quorum changes, key rotation, and trust-list or federation updates. Record the actual fault and membership assumptions; never import a fixed threshold.
 
-**Proposer selection, stake, slashing, and validator signing**
-Review eligibility, randomness, stake/lockup, delegation, proposer and vote signing, equivocation evidence, slashing, rewards, withdrawals, and key rotation. PoS and BFT properties may both apply; select this block independently from consensus membership and finality blocks.
+**Proposer selection and validator signing**
+Review eligibility, leader selection or randomness, proposer and vote signing, domain binding, equivocation prevention, persisted signing decisions, failover, and key rotation. This block applies to signing roles with or without staking; derive their actual authority and selection rules from the profile.
+
+**Stake, delegation, slashing, and rewards**
+Where present, review stake/lockup, delegation, eligibility changes, slashing evidence, rewards, withdrawals, and their timing and accounting effects. Select independently from proposer/signing and quorum/finality blocks: stake-based selection and BFT finality can coexist, and authority-based signing need not involve stake or slashing.
 
 **Light-client proofs and verification**
 Review header or state proofs, commitment roots, path completeness, update/replay windows, trust anchors, client checkpoints, and the boundary between verified and merely relayed data. Establish exactly what a light client is allowed to conclude without a full state view.
