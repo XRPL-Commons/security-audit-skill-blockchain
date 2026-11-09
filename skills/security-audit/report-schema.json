@@ -238,6 +238,109 @@
             },
             "required": ["score", "reason"],
             "additionalProperties": false
+          },
+          "blockchain": {
+            "type": "object",
+            "properties": {
+              "protocol": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "rules": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "invariant": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "attacker_capabilities": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "visibleContent": true
+                }
+              },
+              "assumptions": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "visibleContent": true
+                }
+              },
+              "reference_basis": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "visibleContent": true
+                }
+              },
+              "network": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "client_revision": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "initial_state": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "expected_result": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "observed_result": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "impact_scope": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "inputs": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "protocol",
+              "rules",
+              "invariant",
+              "attacker_capabilities",
+              "assumptions",
+              "reference_basis",
+              "network",
+              "client_revision",
+              "initial_state",
+              "expected_result",
+              "observed_result",
+              "impact_scope",
+              "inputs"
+            ],
+            "additionalProperties": false
           }
         },
         "required": ["verdict", "fingerprint", "title", "description", "root_cause", "intended_behavior", "trace", "evidence", "conditions", "execution", "remediation", "severity", "confidence"],
@@ -355,6 +458,102 @@
               }
             },
             "additionalProperties": false
+          },
+          "blockchain": {
+            "type": "object",
+            "properties": {
+              "protocol": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "rules": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "invariant": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "attacker_capabilities": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "visibleContent": true
+                }
+              },
+              "assumptions": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "visibleContent": true
+                }
+              },
+              "reference_basis": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "visibleContent": true
+                }
+              },
+              "network": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "client_revision": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "initial_state": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "expected_result": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "observed_result": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "impact_scope": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "inputs": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "protocol",
+              "rules",
+              "invariant",
+              "attacker_capabilities",
+              "assumptions",
+              "reference_basis"
+            ],
+            "additionalProperties": false
           }
         },
         "required": ["verdict", "fingerprint", "title", "description", "claimed_root_cause", "trace", "evidence", "blockers", "validation_plan"],
@@ -451,6 +650,102 @@
             "type": "string",
             "minLength": 1,
             "visibleContent": true
+          },
+          "blockchain": {
+            "type": "object",
+            "properties": {
+              "protocol": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "rules": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "invariant": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "attacker_capabilities": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "visibleContent": true
+                }
+              },
+              "assumptions": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "visibleContent": true
+                }
+              },
+              "reference_basis": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "visibleContent": true
+                }
+              },
+              "network": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "client_revision": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "initial_state": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "expected_result": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "observed_result": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "impact_scope": {
+                "type": "string",
+                "minLength": 1,
+                "visibleContent": true
+              },
+              "inputs": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "protocol",
+              "rules",
+              "invariant",
+              "attacker_capabilities",
+              "assumptions",
+              "reference_basis"
+            ],
+            "additionalProperties": false
           }
         },
         "required": ["verdict", "fingerprint", "title", "description", "claimed_root_cause", "trace", "evidence", "reason"],

@@ -94,6 +94,29 @@ function rejected() {
   };
 }
 
+function blockchainEvidence(overrides = {}) {
+  return {
+    protocol: "Bitcoin chainwork and UTXO validation",
+    rules: "Bitcoin Core v27.0 mainnet proof-of-work and UTXO consensus rules",
+    invariant: "A valid chain selects the greatest-work valid history and spends each UTXO at most once.",
+    attacker_capabilities: ["Can submit blocks and transactions they mined or control."],
+    assumptions: ["The reference client and target client start from the same validated chain state."],
+    reference_basis: [
+      "Bitcoin Core v27.0.0 validation code",
+      "BIP-141 consensus rules",
+      "Pinned chain-selection regression vector",
+    ],
+    network: "regtest",
+    client_revision: "bitcoin-core@27.0.0",
+    initial_state: "Two competing histories share the same UTXO snapshot before the disputed block.",
+    expected_result: "Both clients reject the lower-work invalid history and retain the valid UTXO set.",
+    observed_result: "The target accepted a lower-work history and exposed an already-spent output.",
+    impact_scope: "A node can diverge from the network and expose inconsistent transaction state.",
+    inputs: ["block-header-and-transaction-fixture"],
+    ...overrides,
+  };
+}
+
 function errorsFor(value) {
   return validateDocument(value, schema);
 }
@@ -159,6 +182,17 @@ test("schema is an actual top-level array with exactly three branches", () => {
   assert.equal(confirmedSchema.execution.properties.payloads.items.minLength, undefined);
   assert.equal(confirmedSchema.execution.properties.payloads.items.visibleContent, undefined);
   assert.equal(confirmedSchema.remediation.properties.code_changes.items.properties.fixed_code.minLength, undefined);
+  const blockchainBranches = schema.items.oneOf.map((branch) => branch.properties.blockchain);
+  for (const blockchain of blockchainBranches) assert.equal(blockchain.additionalProperties, false);
+  assert.deepEqual(Object.keys(blockchainBranches[0].properties), [
+    "protocol", "rules", "invariant", "attacker_capabilities", "assumptions", "reference_basis",
+    "network", "client_revision", "initial_state", "expected_result", "observed_result", "impact_scope", "inputs",
+  ]);
+  assert.deepEqual(blockchainBranches[0].required, Object.keys(blockchainBranches[0].properties));
+  assert.deepEqual(blockchainBranches[1].required, [
+    "protocol", "rules", "invariant", "attacker_capabilities", "assumptions", "reference_basis",
+  ]);
+  assert.deepEqual(blockchainBranches[2].required, blockchainBranches[1].required);
 });
 
 test("accepts a producer-shaped findings document through the CLI", () => {
@@ -176,6 +210,93 @@ test("accepts empty output and each complete branch", () => {
   const deploymentOnly = needsValidation();
   delete deploymentOnly.validation_plan.local;
   assert.deepEqual(errorsFor([deploymentOnly]), []);
+});
+
+test("accepts confirmed chainwork and UTXO evidence with exact input representations", () => {
+  const finding = confirmed();
+  finding.fingerprint = "src-chainwork-utxo-divergence";
+  finding.blockchain = blockchainEvidence({
+    assumptions: [],
+    inputs: ["", " \t\r\n", "\u0000\u001f\u007f", "\ud800", "\udc00"],
+  });
+  assert.deepEqual(errorsFor([finding]), []);
+  assert.deepEqual(finding.blockchain.inputs, ["", " \t\r\n", "\u0000\u001f\u007f", "\ud800", "\udc00"]);
+});
+
+test("accepts blockchain evidence for an independent client and protocol", () => {
+  const finding = confirmed();
+  finding.fingerprint = "src-evm-independent-client-divergence";
+  finding.blockchain = blockchainEvidence({
+    protocol: "Ethereum execution-layer state transition",
+    rules: "Ethereum execution-spec Shanghai state-transition and receipt rules",
+    invariant: "Independent clients must derive the same post-state root from the same block and pre-state.",
+    network: "devnet",
+    client_revision: "execution-client-b@v1.2.3",
+    initial_state: "Both clients receive the same pre-state root and block fixture.",
+    expected_result: "Both clients produce the same post-state root and receipts.",
+    observed_result: "Client A and client B produced different post-state roots for the pinned fixture.",
+    impact_scope: "Nodes running different clients can finalize incompatible state.",
+    inputs: ["rlp-encoded-block-fixture", "state-trie-vector"],
+  });
+  assert.deepEqual(errorsFor([finding]), []);
+});
+
+test("accepts blocked blockchain candidates with only known context and no observations", () => {
+  const finding = needsValidation();
+  const context = blockchainEvidence();
+  for (const field of [
+    "network", "client_revision", "initial_state", "expected_result", "observed_result", "impact_scope", "inputs",
+  ]) delete context[field];
+  finding.blockchain = context;
+  assert.deepEqual(errorsFor([finding]), []);
+});
+
+test("accepts rejected protocol-permitted reorg context without an observed result", () => {
+  const finding = rejected();
+  finding.blockchain = blockchainEvidence({
+    protocol: "Bitcoin chain selection",
+    rules: "The protocol permits a valid higher-work reorganization before finality.",
+    invariant: "A protocol-permitted reorganization is not a vulnerability when the node follows the active chain-selection rule.",
+    network: "regtest",
+    client_revision: "bitcoin-core@27.0.0",
+    initial_state: "Two valid branches are available and the higher-work branch is not yet selected.",
+    expected_result: "The node follows the valid higher-work branch after the reorganization.",
+    impact_scope: "No persistent consensus or UTXO violation is demonstrated.",
+  });
+  delete finding.blockchain.observed_result;
+  assert.deepEqual(errorsFor([finding]), []);
+});
+
+test("requires complete execution context when confirmed blockchain evidence is present", () => {
+  for (const field of [
+    "network", "client_revision", "initial_state", "expected_result", "observed_result", "impact_scope", "inputs",
+  ]) {
+    const finding = confirmed();
+    finding.blockchain = blockchainEvidence();
+    delete finding.blockchain[field];
+    assert(errorsFor([finding]).some((error) => error.includes(`blockchain: missing required field "${field}"`)), field);
+  }
+});
+
+test("rejects unknown keys, bad types, empty visible values, and duplicate blockchain entries", () => {
+  const mutations = [
+    (blockchain) => { blockchain.extra = "not allowed"; },
+    (blockchain) => { blockchain.protocol = 42; },
+    (blockchain) => { blockchain.rules = " \t\r\n"; },
+    (blockchain) => { blockchain.invariant = "\u200b"; },
+    (blockchain) => { blockchain.attacker_capabilities = []; },
+    (blockchain) => { blockchain.attacker_capabilities = ["same", "same"]; },
+    (blockchain) => { blockchain.assumptions = ["\ufe0f"]; },
+    (blockchain) => { blockchain.reference_basis = []; },
+    (blockchain) => { blockchain.inputs = []; },
+    (blockchain) => { blockchain.inputs = [{}]; },
+  ];
+  for (const mutate of mutations) {
+    const finding = confirmed();
+    finding.blockchain = blockchainEvidence();
+    mutate(finding.blockchain);
+    assert.notEqual(errorsFor([finding]).length, 0);
+  }
 });
 
 test("allows a one-line finding trace", () => {

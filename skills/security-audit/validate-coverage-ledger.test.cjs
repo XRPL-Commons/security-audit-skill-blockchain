@@ -143,6 +143,30 @@ test("accepts an empty ledger and complete units", () => {
   assert.deepEqual(errorsFor([covered]), []);
 });
 
+test("accepts a blockchain producer-shaped fixture with standard companion blocks", () => {
+  const canonicalRefs = {
+    surface: "src/consensus/chainwork.cpp#selectBestChain",
+    boundary: "src/ledger/utxo.cpp#applyBlock",
+    subsystem: "consensus",
+    attack_class: "BLOCKCHAIN-CLIENTS.md#State transition validity and determinism",
+  };
+  const fixture = unit({
+    canonical_refs: canonicalRefs,
+    surface: "Chainwork and UTXO state transition",
+    boundary: "Validated block to UTXO state",
+    subsystem: "consensus",
+    attack_class: "State transition validity and determinism",
+    ordinary_attack_class_block: null,
+    selected_companion_blocks: [
+      "BLOCKCHAIN-CLIENTS.md#State transition validity and determinism",
+      "BLOCKCHAIN-CLIENTS.md#Core discipline (include in every agent prompt for this domain)",
+      "BLOCKCHAIN-CLIENTS.md#Universal moves (apply across the above)",
+      "BLOCKCHAIN-CLIENTS.md#Validation rules (apply before reporting ANY finding here)",
+    ],
+  });
+  assert.deepEqual(errorsFor([fixture]), []);
+});
+
 test("accepts a complete ledger through the CLI", { skip: !HAS_SAFE_INPUT_OPEN }, () => {
   const result = runCli(JSON.stringify([unit()]));
   assert.equal(result.status, 0, cliOutput(result));
