@@ -75,7 +75,7 @@ Several consumers jointly implement one authorization or business transition, bu
 ## Validation rules (apply before reporting ANY finding here)
 
 1. Name the realistic producer or peer, accepted message, authenticated channel identity, affected principal/resource, and unauthorized mutation or disclosure.
-2. For disagreement claims, cite both parsers/consumers and the divergent decoded value. Safe rejection by either side prevents confirmation.
+2. For disagreement claims, cite both parsers/consumers and the divergent interpretation or acceptance decision. In a serial pipeline, rejection that prevents the claimed downstream effect refutes that effect. Independent clients can instead violate a shared protocol invariant by accepting and rejecting the same input under the same applicable rules. Establish the resulting state, safety, or progress consequence; a mismatch alone does not prove a chain split. Use `BLOCKCHAIN-CLIENTS.md` for those boundaries.
 3. For replay/order claims, establish actual delivery guarantees and reproduce the invariant failure with a bounded local/in-memory transport.
 4. For authorization and isolation, verify all interceptor, broker ACL, gateway, and consumer layers visible in source. External attachments make the candidate `needs_validation`.
 5. Return `confirmed` only with the complete message lifecycle and observed meaningful result. Return `needs_validation` with the exact broker, service identity, route, or delivery fact required.

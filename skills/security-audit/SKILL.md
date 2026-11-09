@@ -1,6 +1,6 @@
 ---
 name: security-audit
-description: Security guidance and vulnerability review for codebases, APIs, services, CLI tools, libraries, and daemons. Use for security questions, focused reviews, vulnerability research, security audits, or pen tests. Run the complete workflow only for explicit codebase audit or pen-test requests, full/comprehensive/end-to-end reviews, or requested report artifacts.
+description: Security guidance and vulnerability review for blockchain clients and protocols, APIs, services, CLI tools, libraries, and daemons. Use for security questions, focused reviews, vulnerability research, security audits, or pen tests. Run the complete workflow only for explicit codebase audit or pen-test requests, full/comprehensive/end-to-end reviews, or requested report artifacts.
 ---
 
 # Security Audit
@@ -15,6 +15,14 @@ This skill is guidance by default. Loading it does not authorize the complete au
 - **Full audit mode**: Use the complete workflow when the user explicitly asks to audit or pen-test a codebase, asks for a full, comprehensive, or end-to-end security review, or requests report artifacts. Run all six phases and write the files defined below.
 
 If the request could mean either mode, ask one focused question before creating files or starting the complete workflow.
+
+## Blockchain client targets
+
+For code that validates, executes, orders, signs, synchronizes, or proves blockchain state, use [BLOCKCHAIN-CLIENTS.md](BLOCKCHAIN-CLIENTS.md) and resolve the applicable protocol and client context with [BLOCKCHAIN-PROFILES.md](BLOCKCHAIN-PROFILES.md). Compose the shared core with source-supported capability blocks and target-specific prompts. A familiar chain name is not a substitute for its actual rules, version, fault model, or implementation boundaries. Ordinary application code that merely calls a blockchain API does not automatically require every client check.
+
+In full audit mode, the existing reconnaissance agents gather the context and the parent records it in `blockchain-profiles.md`; include its path in run metadata and pass the relevant facts to hunters, critics, and verifiers. These protocol/client profiles are separate from the `quick`, `standard`, and `deep` run profiles. Guidance mode uses the relevant context inline without creating audit files.
+
+The extension preserves the security evidence bar. A conformance difference or reliability bug without an established security consequence remains a separately labeled observation, not a confirmed vulnerability. No protocol or reference client is the universal oracle.
 
 ## Platform terminology
 
@@ -62,6 +70,7 @@ The parent creates and is the only writer of shared run files:
 - `REPORT.md`
 - `FINDINGS-DETAIL.md`
 - `NEEDS-VALIDATION.md`
+- `blockchain-profiles.md` when blockchain client boundaries are in scope
 
 Each hunter or verifier receives a unique root under `<output-dir>/agents/<agent-id>/`, with separate `scratch/` and `artifacts/` directories. Canonical agent IDs match `^[a-z0-9][a-z0-9_-]{0,63}$` and must not equal a Windows device name such as `con`, `prn`, `aux`, `nul`, `com1` through `com9`, or `lpt1` through `lpt9`. Lowercase IDs prevent case-fold collisions. The agent and every target-controlled process may write only to `scratch/`; retained `artifacts/` is parent-owned, is never exposed to the sandbox, and is writable only by trusted parent-side promotion code. Agents may not change shared files, target source, retained artifacts, or another agent's directory. Do not use `/tmp` or the host home directory as a writable fallback.
 
@@ -139,6 +148,8 @@ A strict total-agent budget can still be exceeded by an unexpectedly large candi
 
 For every candidate, name the lower-trust principal, accepted input or action, intended control, crossed boundary, affected principal or resource, and concrete observed or owner-observable result. Do not elevate a missing best practice, guessed deployment behavior, generic parser crash, or self-impact into a security finding.
 
+A boundary may protect shared state validity, cryptographic authority, consensus safety, or progress under a declared fault model. It need not be a tenant ACL. Establish how lower-trust input violates that guarantee and who or what is affected.
+
 ### Use bounded local evidence
 
 Static analysis establishes the source path. Sandboxed local tests resolve behavior when all execution controls are available: a minimal function harness, existing unit test, small parser fixture, dummy-tenant integration test, locally rendered configuration, or bounded isolated-loopback client. Stop at a wrong return value, unauthorized dummy record, sanitizer finding, policy difference, or other minimum effect. Do not extend the local check beyond the minimum boundary result or produce persistence, post-fault, or concealment material.
@@ -161,9 +172,13 @@ Calibrate overall severity with these anchors:
 
 The high/medium discriminator: does the demonstrated result fully defeat an explicit control for an action with real consequences, or only weaken it? If you cannot state the concrete damage, the severity is lower than it feels.
 
+For blockchain clients, also assess unauthorized asset effects, invalid state acceptance, consensus safety or finality violations, loss of progress, signing-authority compromise, and effects on downstream consumers. Distinguish one process, a peer subset, and the network; a local crash or differential mismatch does not establish network-wide impact. Evaluate actual attacker capabilities and cost: possession of an ordinary account, signature, or peer identity does not by itself reduce severity. Apply the protocol's fault and finality assumptions before assigning impact; the presence of a fork or failed transaction is not sufficient.
+
 ### Recommend the smallest effective source fix
 
 For each confirmed finding, identify the invariant the code must enforce and the narrowest source change that enforces it at the last trusted decision point. Prefer specific repository-relative changes and regression tests over generic hardening advice. The audit describes fixes; it does not modify target source.
+
+For protocol-bearing fixes, distinguish consensus rules from local admission/relay policy and implementation choices. State whether the change preserves current validity rules or requires coordinated protocol activation; stricter acceptance rules can themselves break compatibility.
 
 ## Full audit workflow
 
@@ -190,3 +205,7 @@ Do not end the run before one of exactly two terminal states: (a) all Phase 6 ar
 8. Re-reporting carried same-source prior confirmed records or using them as exemplars that anchor the hunt.
 9. Assigning severity to `needs_validation` records.
 10. Writing the report before independent verification or letting prose and JSON disagree.
+
+## Attribution
+
+Derived from [Cloudflare's security-audit skill](https://github.com/cloudflare/security-audit-skill), with blockchain extensions maintained at [XRPL Commons](https://github.com/XRPL-Commons/security-audit-skill-blockchain). Distributed under the [MIT license](LICENSE).

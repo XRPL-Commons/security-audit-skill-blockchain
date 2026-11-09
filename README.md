@@ -1,8 +1,16 @@
-# security-audit
+# Blockchain Security Audit Skill
 
-A coding-agent skill that turns your agent into a security auditor. It orchestrates isolated agents through reconnaissance, coverage-led hunting, candidate validation, structured output, independent record verification, and target-neutral reporting.
+A coding-agent skill for security reviews of blockchain clients and protocols, with a shared review method, selectable capability prompts, and source-grounded protocol and client profiles. It also retains the original audit support for services, APIs, libraries, and other software.
 
-This is the skill that seeded Cloudflare's vulnerability discovery harness, described in [Build your own vulnerability harness](https://blog.cloudflare.com/build-your-own-vulnerability-harness). The harness grew into a multi-stage, fleet-wide system; this skill is the single-repo starting point it evolved from.
+This repository extends [Cloudflare's security-audit skill](https://github.com/cloudflare/security-audit-skill), the starting point for the vulnerability discovery harness described in [Build your own vulnerability harness](https://blog.cloudflare.com/build-your-own-vulnerability-harness). The blockchain extensions are maintained here by XRPL Commons and apply across blockchain protocols; they are not specific to XRPL. The upstream MIT license and attribution are preserved.
+
+## Blockchain coverage
+
+The shared prompts cover state-transition validity, canonical encoding and cryptographic binding, accounting, consensus safety and progress, adversarial networking and synchronization, resource amplification, persistence/recovery, and protocol upgrades.
+
+Compose only the capabilities present in the target: UTXO or account/VM execution, chainwork, voting and membership, proposer/signing responsibilities, proof verification, data availability, light clients, and settlement. Capabilities may overlap. The protocol profile supplies actual validity, ordering, finality, fault and activation rules; the client profile maps them to source, build configurations and local tests. Both are derived from pinned, available evidence for the target instead of a built-in list of chains or a universal reference client.
+
+Independent clients accepting and rejecting the same input can be a meaningful disagreement. Temporary forks, differing mempools, permitted failure effects, and local policy differences are not automatically vulnerabilities. Confirmed findings require a violated security invariant and an observed consequence under the stated protocol assumptions.
 
 ## What it does
 
@@ -29,6 +37,8 @@ Multiple runs against the same repo are additive. The skill uses prior ledgers a
 | `RECONNAISSANCE.md` | Phase 1 reconnaissance prompts and synthesis instructions |
 | `HUNTING.md` | Phase 2 orchestration, hunting methodology, and validation rules |
 | `ATTACK-CLASSES.md` | Core, wildcard, and obvious-things attack prompts |
+| `BLOCKCHAIN-CLIENTS.md` | Shared blockchain invariants, selectable capability prompts, and bounded validation rules |
+| `BLOCKCHAIN-PROFILES.md` | Source-grounded protocol/client discovery prompts and structured evidence contract |
 | `MEMORY-SAFETY-AND-BINARY.md` | Memory-safety, binary, and kernel hunting classes for native targets |
 | `AI-AND-LLM.md` | Prompt-injection, agent/tool, and output-handling hunting classes for LLM-backed targets |
 | `WEB-PROTOCOL-AND-AUTH.md` | HTTP request-framing, cache, and authentication-protocol hunting classes for HTTP-protocol and auth targets |
@@ -51,19 +61,21 @@ Multiple runs against the same repo are additive. The skill uses prior ledgers a
 Install the skill with the [Skills CLI](https://skills.sh):
 
 ```bash
-npx skills add https://github.com/cloudflare/security-audit-skill \
+npx skills add https://github.com/XRPL-Commons/security-audit-skill-blockchain \
   --skill security-audit
 ```
 
 Use `--global` for a user-level installation:
 
 ```bash
-npx skills add https://github.com/cloudflare/security-audit-skill \
+npx skills add https://github.com/XRPL-Commons/security-audit-skill-blockchain \
   --skill security-audit \
   --global
 ```
 
 Run `npx skills --help` for agent-selection and non-interactive options.
+
+The skill retains the name `security-audit`; installing this fork updates that skill rather than introducing a second invocation name.
 
 ## Usage
 
@@ -81,6 +93,14 @@ find security vulnerabilities in ./src
 do a security review, output to ~/audits/my-project
 ```
 
+For a focused protocol review:
+
+```
+Review this client's block validation and crash recovery. Derive the protocol rules
+from the pinned specification and local references, and distinguish consensus
+validity from mempool policy. Keep any unproven network-wide impact explicit.
+```
+
 The skill activates automatically when the request matches its trigger (security audit, find vulnerabilities, pen-test the code, etc.). A direct codebase audit or pen-test request uses full audit mode. Security questions and focused vulnerability work use guidance mode unless you request report artifacts. In full audit mode, an unspecified output directory defaults to `~/security-audit-skill/<repo-name>/run-<N>`. The workflow writes inside the target repository only when you explicitly select a directory that version control ignores.
 
 ## Requirements
@@ -95,11 +115,21 @@ The skill activates automatically when the request matches its trigger (security
 - **Adversarial validation.** The agent that checks a finding is never the agent that found it.
 - **Severity requires impact.** Likelihood x impact, not deviation from a checklist.
 - **Defense-in-depth gaps are not vulnerabilities.** If Layer A prevents the attack, the absence of Layer B is a hardening note.
-- **Multiple runs improve coverage.** In our test runs, a single run found roughly half of the vulnerabilities that repeated runs found in total.
+- **Multiple runs can improve coverage.** Carry forward source-grounded evidence and revisit gaps. No blockchain detection-rate claim is made for these prompts.
+
+## Validation
+
+Run the dependency-free validators' regression suites from the repository root:
+
+```bash
+node --test skills/security-audit/*.test.cjs
+```
+
+The findings format remains compatible with generic reports. Blockchain-unit records additionally use a structured `blockchain` context; confirmed records require reproducible initial state, inputs, rules, expected/observed results and impact scope. Schema validation establishes format, not consensus correctness.
 
 ## Contact
 
-Questions, feedback, or comparing notes on AI-driven security tooling: security-ai-research@cloudflare.com
+Report issues with this extension in [this repository](https://github.com/XRPL-Commons/security-audit-skill-blockchain/issues). Upstream security research and the original skill are maintained by Cloudflare.
 
 ## License
 

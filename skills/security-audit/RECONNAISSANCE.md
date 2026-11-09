@@ -6,6 +6,8 @@ The parent initializes `run-metadata.json`, applies the strict pre-reconnaissanc
 
 Launch several `research` agents in parallel. They return structured facts to the parent and do not write files.
 
+When blockchain client boundaries are in scope, append the relevant reconnaissance questions from [BLOCKCHAIN-PROFILES.md](BLOCKCHAIN-PROFILES.md) to these four assignments: Agent 1a maps protocol/version and client architecture; 1b maps roles, attacker capabilities, fault assumptions and trust roots; 1c maps consensus-sensitive transitions and input paths; 1d maps local reference material, fixtures and bounded replay/simulation tools. This does not add mandatory agents or change the budget gate.
+
 **Agent 1a: Product, stack, and local operation**
 
 ```text
@@ -61,6 +63,7 @@ Add focused reconnaissance agents for materially distinct deployment modes or su
 Before selecting work, the parent reads every available prior `coverage-ledger.json` and `findings.json` for the same repo:
 
 - Compare the source locations, controls, conditions, and source-derived identity for every prior record and unit against the current source.
+- For blockchain work, also compare protocol rules, activation regime, reference revisions, network parameters, and fault assumptions. Unchanged client code does not preserve evidence when those conditions change.
 - Carry an unchanged prior `confirmed` record into the current candidate set, with the same fingerprint, only when its relevant source, conditions, and qualifying evidence still apply. Link it to a current `planned` unit with `prior_status: "prior_confirmed_same_source"` and put only that root cause on the hunter exclusion list. The Phase 3 verifier that re-verifies the carried record becomes that unit's assignment owner; its source re-check is the unit's first check and moves the unit to `candidate` with the carried fingerprint.
 - Build a current planned `prior_confirmed_changed_source` revalidation unit when any relevant source or condition changed. Do not exclude that root cause from hunting or assume the prior verdict still applies.
 - Build current work units for every prior `needs_validation`, `deferred`, `blocked`, `out_of_scope`, and changed-source unit. These states are priority input, never deduplication or suppression keys.
@@ -87,9 +90,13 @@ Keep the assignment-level ordinary block, selected companion blocks, and exclude
 
 Do not select a companion file merely because the language or dependency name appears. Select it because reconnaissance found the trust-sensitive boundary described by its `When to use this file` section. Do not exclude a visible boundary just because another agent will review a related class.
 
+For blockchain clients, the parent resolves `blockchain-profiles.md` using [BLOCKCHAIN-PROFILES.md](BLOCKCHAIN-PROFILES.md). Link that artifact from `architecture.md` and record its path in `run-metadata.json`; preserve the architecture word cap. Derive a profile for an unfamiliar protocol from available evidence instead of importing another chain's defaults. Mark missing decisive rules or reference material explicitly and keep independent source review moving.
+
 ## Deterministic coverage ledger
 
 The parent writes `<output-dir>/coverage-ledger.json` as a top-level JSON array. Derive one unit for every material combination of entry surface, trust boundary, subsystem, and applicable ordinary or companion attack class at the granularity the run profile sets (`quick` uses one all-in-scope subsystem identity; `deep` adds lifecycle modes). For a scoped run, seed in-scope surfaces for assignment and retain discovered excluded surfaces as `out_of_scope` units so later full runs can turn them into current work.
+
+For blockchain units, select the applicable shared and capability classes from `BLOCKCHAIN-CLIENTS.md`, including its `Core discipline`, `Universal moves`, and `Validation rules`. Use the existing lifecycle dimension where activation, fork/recovery state, or another source-defined regime changes the invariant; otherwise record those conditions in the checks and linked profile. Do not generate an unbounded cross-product of hypothetical chains, forks, or configurations. A broader run profile cannot silently omit a material rules regime.
 
 Each dimension has a human label and a stable source-derived value in `canonical_refs`. Use the same canonical reference for the same source object across runs even if its display label changes. Suitable references include a repository-relative entry path plus exported scope, a route or message identity defined in source, the source control that defines a boundary, a repository package path, and the exact attack-class block reference. A block reference is `FILE.md#` plus the exact class name as written in bold or as a heading in that file — a stable identifier matched against the file text, not a rendered HTML anchor. For companion section blocks, use the heading text before any parenthetical qualifier (for example `Core discipline`). Do not derive references by lowercasing or slugging display labels.
 

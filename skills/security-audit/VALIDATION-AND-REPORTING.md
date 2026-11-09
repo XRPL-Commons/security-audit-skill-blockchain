@@ -6,6 +6,8 @@ After the clean coverage-critic pass or an explicitly recorded early stop, conso
 
 Assign each verifier a canonical lowercase unique ID and `<output-dir>/agents/<verifier-id>/scratch/` plus parent-owned `artifacts/`. The verifier writes only to `scratch/` and never writes retained artifacts. It receives only the candidate, its linked coverage-unit checks and artifact paths, architecture facts needed to interpret the path, exact relevant companion validation blocks, the promotion procedure block below, the source/local execution boundary, the `confirmed`, `needs_validation`, and `rejected` branches of `report-schema.json` copied verbatim, and prior records with the same fingerprint. It must not receive another verifier's conclusion.
 
+For blockchain units, include the relevant resolved protocol/client profile, selected capability blocks, and the evidence contract in `BLOCKCHAIN-PROFILES.md`. Independently verify the rules and reference revisions behind the claimed invariant, the attacker's actual capabilities, and the consequence of any client disagreement. Do not substitute a familiar protocol's quorum, finality, rollback, ordering, or upgrade semantics.
+
 #### Candidate-verifier prompt
 
 ```text
@@ -38,6 +40,12 @@ unavailable or fails, do not use that file as evidence.
    missing fact remains decisive, keep needs_validation and make the local and
    owner-observed plans exact and non-destructive.
 6. Preserve the fingerprint for the same source-derived root cause across every state.
+7. For a blockchain candidate, check that initial state, inputs, active rules, network
+   parameters and reference revisions describe the same experiment. Distinguish
+   consensus validity from admission/relay policy and implementation choices. Verify
+   the observed security consequence and its scope; a mismatch or local halt alone
+   does not establish a network split or network-wide loss of progress. Check whether
+   the proposed fix preserves protocol rules or requires coordinated activation.
 
 Return exactly one JSON object and no surrounding prose:
 {"decision": "confirmed|needs_validation|rejected", "record": { ... }}
@@ -108,6 +116,8 @@ Read `report-schema.json` immediately before writing. It uses `additionalPropert
 
 Every record has a stable fingerprint, title, description, and repository-relative source paths. A multi-step trace begins with `entrypoint`, ends with `sink`, and uses `propagation` only between them. One-entry traces use `entrypoint` or `sink`. Overall severity cannot exceed demonstrated impact.
 
+Every record arising from a blockchain companion unit retains its `blockchain` context across verdict changes. Follow the exact field contract in [BLOCKCHAIN-PROFILES.md](BLOCKCHAIN-PROFILES.md); the schema requires complete experiment context when a record with `blockchain` is confirmed. `needs_validation` and `rejected` records may omit unknown experiment fields, but must retain established rules, invariant, capabilities, assumptions and reference basis. Never invent a replay result to satisfy the schema. Generic findings may omit `blockchain`; the parent checks unit membership to detect a missing blockchain context. The validators check structure, not protocol correctness or whether a referenced oracle is authoritative.
+
 Run:
 
 ```sh
@@ -131,6 +141,7 @@ For `confirmed`, require it to check:
 4. Affected principal/resource and demonstrated impact.
 5. Severity separation: realistic likelihood, demonstrated impact, overall no greater than impact.
 6. Remediation strategy and any `code_changes`, including whether the fix enforces the invariant without merely moving trust.
+7. For blockchain units, the `blockchain` evidence against the resolved protocol/client profile, exact reference revisions, state/input/rules alignment, fault assumptions, actual impact scope, and protocol compatibility of the remedy. A reference that shares the same bug does not refute an independently demonstrated invariant violation.
 
 For `needs_validation`, require it to check:
 
@@ -150,7 +161,7 @@ Do not verify only `confirmed` records. A misleading `needs_validation` handoff 
 
 ### Phase 6: Produce target-neutral reports from final records
 
-Only after Phase 5 passes for every record retained in `findings.json`, derive prose from the final records, the ledger, and the hunter `hardening` notes retained in ledger bookkeeping. An incomplete run may report independently verified records, but it must identify each unresolved ledger candidate and must not present it as a finding. The prose files never change a verdict, severity, blocker, or demonstrated impact.
+Only after Phase 5 passes for every record retained in `findings.json`, derive prose from the final records, the ledger, and the hunter `hardening` notes and source-checked `observations` retained in ledger bookkeeping. An incomplete run may report independently verified records, but it must identify each unresolved ledger candidate and must not present it as a finding. The prose files never change a verdict, severity, blocker, or demonstrated impact.
 
 #### `REPORT.md`
 
@@ -161,10 +172,12 @@ Write:
 3. A confirmed-findings table: severity, title, affected boundary, and one-line observed result.
 4. Each confirmed finding: repository source location, lower-trust principal, target-native bounded reproduction, conditions, actual result, impact, priority rationale, and smallest source fix.
 5. A separate `NEEDS VALIDATION` table. Give each lead's title, repository trace, exact blocker, bounded local next step, and safe owner-observed deployment check. Do not assign severity or call it a confirmed vulnerability.
-6. Separate hardening notes and positive source patterns.
+6. Separate hardening notes, positive source patterns, and source-checked conformance/reliability observations. Observations are not confirmed vulnerabilities and receive no security severity; state their evidence and remaining limits.
 7. Coverage summary from the ledger: covered, candidate, blocked, and deferred counts, plus important exclusions and the final critic result.
 
 Do not describe rejected records as findings. Mention their fingerprints only when they explain a prior disagreement or coverage decision.
+
+For blockchain reviews, identify the resolved protocol/client profile, rule regimes actually exercised, reference policy, fault assumptions, and untested capabilities. Present protocol context and replay/schedule evidence with each relevant finding, preserving the distinction between local-node, peer-subset, asset, and network consequences. Do not describe a finite fuzz run or a schema-valid report as exhaustive protocol verification.
 
 #### `FINDINGS-DETAIL.md`
 
@@ -182,5 +195,7 @@ For each confirmed `medium`, `high`, or `critical` record, copy the complete sou
 For every unresolved record, copy the source trace, verified evidence, exact blocker, affected boundary, and each applicable bounded local or owner-observed resolution plan. Keep these as prioritized leads without severity. Do not turn them into live test guidance or assume the missing deployment fact.
 
 HTTP is one possible native interface, not the default. A library finding may use a function call, a parser a fixture, a CLI a command, a desktop app an IPC or file action, and infrastructure a locally rendered policy. Do not require an endpoint, external account, or live environment that the target does not have.
+
+A blockchain finding may use an ordered transaction/block sequence, a proof, a state fixture, or a deterministic message schedule. Include the necessary parent state, active rules and synthetic identities; use only the local evidence and artifact paths already independently verified.
 
 Keep the report proportional to the evidence. A clean run may have zero confirmed records. State that result and the remaining coverage/validation limits without inventing LOW findings.
