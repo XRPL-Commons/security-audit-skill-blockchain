@@ -245,6 +245,15 @@ test("accepts blockchain evidence for an independent client and protocol", () =>
   assert.deepEqual(errorsFor([finding]), []);
 });
 
+test("accepts repeated blockchain inputs in replay and message-order evidence", () => {
+  for (const factory of [confirmed, needsValidation, rejected]) {
+    const finding = factory();
+    finding.blockchain = blockchainEvidence({ inputs: ["signed-message-A", "signed-message-B", "signed-message-A"] });
+    const result = runCli(JSON.stringify([finding]));
+    assert.equal(result.status, 0, cliOutput(result));
+  }
+});
+
 test("accepts blocked blockchain candidates with only known context and no observations", () => {
   const finding = needsValidation();
   const context = blockchainEvidence();

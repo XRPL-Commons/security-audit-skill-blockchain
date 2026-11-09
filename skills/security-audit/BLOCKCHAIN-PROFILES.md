@@ -68,7 +68,7 @@ Client profile
 
 ## Compose and retain the resolved profile
 
-For each blockchain agent prompt, include the `Core discipline`, applicable shared attack-class blocks selected during reconnaissance from [ATTACK-CLASSES.md](ATTACK-CLASSES.md) and other selected companions, each selected capability block, `Universal moves`, and `Validation rules` from [BLOCKCHAIN-CLIENTS.md](BLOCKCHAIN-CLIENTS.md), followed by the relevant protocol and client profile fragments. Keep the exact block names so coverage-ledger references remain stable. Revalidate the profile from the current source even for a familiar client; unknown facts remain unknown.
+For each blockchain agent prompt, include the `Core discipline`, applicable shared attack-class blocks, selected capability blocks, `Universal moves`, and `Validation rules` from [BLOCKCHAIN-CLIENTS.md](BLOCKCHAIN-CLIENTS.md). Add selected ordinary blocks from [ATTACK-CLASSES.md](ATTACK-CLASSES.md) and other companions using the composition rules in [HUNTING.md](HUNTING.md), then the relevant protocol and client profile fragments. Keep exact block names so coverage-ledger references remain stable. Revalidate the profile from current source even for a familiar client; unknown facts remain unknown.
 
 In full audit mode, the parent stores the resolved profiles as the run artifact `<output-dir>/blockchain-profiles.md` alongside the run's other retained artifacts. In guidance mode, keep the profile inline and do not create a file unless the user asks for one. Profile capture does not change inherited sandbox, write-isolation, budget, or no-live-network controls.
 

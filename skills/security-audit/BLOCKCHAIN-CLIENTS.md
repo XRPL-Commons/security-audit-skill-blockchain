@@ -80,7 +80,7 @@ Review batch ordering, inbox/outbox or bridge messages, proof/challenge windows,
 - Use small initial states and exact fixtures that exercise valid, invalid, duplicate, replayed, reordered, boundary, and versioned cases only where the protocol defines those cases.
 - Within the assignment boundary and designated references, compare in-scope clients, serializers, execution modes, recovery paths, and version gates. Treat disagreement as a lead until the governing rule and security consequence are proven.
 - Re-check normal processing, reorg or rollback, restart, pruning/snapshot restore, synchronization, and mixed-version paths for the same invariant.
-- For network-wide claims, state the topology, identities, stake/weight, resource, and adversary bounds that make the effect reachable. A single-node observation is insufficient; bounded multi-node or model evidence may establish a protocol violation under explicit assumptions, while deployed impact remains conditional.
+- For network-wide claims, state the applicable topology, identity, work, stake/weight, resource, and adversary bounds that make the effect reachable. A single-node observation is insufficient; bounded multi-node or model evidence may establish a protocol violation under explicit assumptions, while deployed impact remains conditional.
 
 ## Validation rules (apply before reporting ANY finding here)
 
