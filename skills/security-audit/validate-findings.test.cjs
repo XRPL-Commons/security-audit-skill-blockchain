@@ -96,23 +96,23 @@ function rejected() {
 
 function blockchainEvidence(overrides = {}) {
   return {
-    protocol: "Bitcoin chainwork and UTXO validation",
-    rules: "Bitcoin Core v27.0 mainnet proof-of-work and UTXO consensus rules",
+    protocol: "SyntheticChain proof-of-work and UTXO model",
+    rules: "SyntheticChain rule-set rev-7: work ordering and single-spend checks",
     invariant: "A valid chain selects the greatest-work valid history and spends each UTXO at most once.",
-    attacker_capabilities: ["Can submit blocks and transactions they mined or control."],
-    assumptions: ["The reference client and target client start from the same validated chain state."],
+    attacker_capabilities: ["Can submit synthetic blocks and transactions to an isolated fixture."],
+    assumptions: ["The synthetic reference and target clients start from the same pinned fixture state."],
     reference_basis: [
-      "Bitcoin Core v27.0.0 validation code",
-      "BIP-141 consensus rules",
-      "Pinned chain-selection regression vector",
+      "SyntheticChain protocol specification rev-7",
+      "SyntheticChain pinned reference model rev-7",
+      "SyntheticChain state-transition vector SC-UTXO-001",
     ],
-    network: "regtest",
-    client_revision: "bitcoin-core@27.0.0",
+    network: "synthetic-regtest",
+    client_revision: "synthetic-client-ref@7.4.1",
     initial_state: "Two competing histories share the same UTXO snapshot before the disputed block.",
     expected_result: "Both clients reject the lower-work invalid history and retain the valid UTXO set.",
     observed_result: "The target accepted a lower-work history and exposed an already-spent output.",
-    impact_scope: "A node can diverge from the network and expose inconsistent transaction state.",
-    inputs: ["block-header-and-transaction-fixture"],
+    impact_scope: "The isolated fixture demonstrates a node exposing inconsistent transaction state.",
+    inputs: ["synthetic-block-header-and-transaction-fixture"],
     ...overrides,
   };
 }
@@ -182,17 +182,6 @@ test("schema is an actual top-level array with exactly three branches", () => {
   assert.equal(confirmedSchema.execution.properties.payloads.items.minLength, undefined);
   assert.equal(confirmedSchema.execution.properties.payloads.items.visibleContent, undefined);
   assert.equal(confirmedSchema.remediation.properties.code_changes.items.properties.fixed_code.minLength, undefined);
-  const blockchainBranches = schema.items.oneOf.map((branch) => branch.properties.blockchain);
-  for (const blockchain of blockchainBranches) assert.equal(blockchain.additionalProperties, false);
-  assert.deepEqual(Object.keys(blockchainBranches[0].properties), [
-    "protocol", "rules", "invariant", "attacker_capabilities", "assumptions", "reference_basis",
-    "network", "client_revision", "initial_state", "expected_result", "observed_result", "impact_scope", "inputs",
-  ]);
-  assert.deepEqual(blockchainBranches[0].required, Object.keys(blockchainBranches[0].properties));
-  assert.deepEqual(blockchainBranches[1].required, [
-    "protocol", "rules", "invariant", "attacker_capabilities", "assumptions", "reference_basis",
-  ]);
-  assert.deepEqual(blockchainBranches[2].required, blockchainBranches[1].required);
 });
 
 test("accepts a producer-shaped findings document through the CLI", () => {
@@ -215,6 +204,10 @@ test("accepts empty output and each complete branch", () => {
 test("accepts confirmed chainwork and UTXO evidence with exact input representations", () => {
   const finding = confirmed();
   finding.fingerprint = "src-chainwork-utxo-divergence";
+  finding.title = "SyntheticChain lower-work history accepted";
+  finding.description = "An isolated state-transition fixture accepted a lower-work history and exposed an already-spent output.";
+  finding.root_cause = "The chain-selection path accepts a lower-work history before validating the UTXO transition.";
+  finding.intended_behavior = "The client must select only a valid greatest-work history and preserve UTXO single-spend validity.";
   finding.blockchain = blockchainEvidence({
     assumptions: [],
     inputs: ["", " \t\r\n", "\u0000\u001f\u007f", "\ud800", "\udc00"],
@@ -226,17 +219,28 @@ test("accepts confirmed chainwork and UTXO evidence with exact input representat
 test("accepts blockchain evidence for an independent client and protocol", () => {
   const finding = confirmed();
   finding.fingerprint = "src-evm-independent-client-divergence";
+  finding.title = "SyntheticVM clients diverge on a state fixture";
+  finding.description = "Two independent clients derive different state roots from the same bounded local fixture.";
+  finding.root_cause = "The clients implement different state-transition behavior for the pinned fixture.";
+  finding.intended_behavior = "Independent clients must derive the same post-state from the same protocol inputs and pre-state.";
   finding.blockchain = blockchainEvidence({
-    protocol: "Ethereum execution-layer state transition",
-    rules: "Ethereum execution-spec Shanghai state-transition and receipt rules",
+    protocol: "SyntheticVM deterministic state-transition model",
+    rules: "SyntheticVM rule-set rev-3: account updates, receipts, and post-state roots",
     invariant: "Independent clients must derive the same post-state root from the same block and pre-state.",
-    network: "devnet",
-    client_revision: "execution-client-b@v1.2.3",
-    initial_state: "Both clients receive the same pre-state root and block fixture.",
+    attacker_capabilities: ["Can submit a bounded block fixture to an isolated local network."],
+    assumptions: ["Both synthetic clients load the same pinned pre-state and execute without external peers."],
+    reference_basis: [
+      "SyntheticVM protocol specification rev-3",
+      "SyntheticVM pinned reference model rev-3",
+      "SyntheticVM state-transition vector SVM-STATE-002",
+    ],
+    network: "synthetic-devnet",
+    client_revision: "synthetic-vm-client-b@3.2.1",
+    initial_state: "Both clients receive the same pre-state root and bounded block fixture.",
     expected_result: "Both clients produce the same post-state root and receipts.",
-    observed_result: "Client A and client B produced different post-state roots for the pinned fixture.",
-    impact_scope: "Nodes running different clients can finalize incompatible state.",
-    inputs: ["rlp-encoded-block-fixture", "state-trie-vector"],
+    observed_result: "Client A and client B produced different post-state roots for the pinned local fixture.",
+    impact_scope: "The bounded local fixture demonstrates divergent state validity between the two client revisions.",
+    inputs: ["synthetic-vm-block-fixture", "synthetic-vm-state-vector"],
   });
   assert.deepEqual(errorsFor([finding]), []);
 });
@@ -253,32 +257,45 @@ test("accepts blocked blockchain candidates with only known context and no obser
 
 test("accepts rejected protocol-permitted reorg context without an observed result", () => {
   const finding = rejected();
+  finding.title = "Protocol-permitted branch switch";
+  finding.description = "The candidate treated a valid branch switch as a consensus violation.";
+  finding.claimed_root_cause = "The implementation was claimed to accept a protocol-permitted branch switch as an invalid reorganization.";
+  finding.reason = "The branch switch follows the protocol's valid branch-selection rule and does not demonstrate an invalid state transition.";
   finding.blockchain = blockchainEvidence({
-    protocol: "Bitcoin chain selection",
-    rules: "The protocol permits a valid higher-work reorganization before finality.",
-    invariant: "A protocol-permitted reorganization is not a vulnerability when the node follows the active chain-selection rule.",
-    network: "regtest",
-    client_revision: "bitcoin-core@27.0.0",
-    initial_state: "Two valid branches are available and the higher-work branch is not yet selected.",
-    expected_result: "The node follows the valid higher-work branch after the reorganization.",
-    impact_scope: "No persistent consensus or UTXO violation is demonstrated.",
+    protocol: "SyntheticChain branch selection",
+    rules: "The protocol permits switching to a valid higher-work branch before the local finality threshold.",
+    invariant: "A permitted branch switch is not a vulnerability when the node applies the protocol's branch-selection rule.",
+    network: "synthetic-regtest",
+    client_revision: "synthetic-client-ref@7.4.1",
+    initial_state: "Two valid branches are available and neither has crossed the local finality threshold.",
+    expected_result: "The node switches to the valid higher-work branch according to the protocol rule.",
+    impact_scope: "The source path does not create an invalid state or unauthorized spend.",
   });
   delete finding.blockchain.observed_result;
   assert.deepEqual(errorsFor([finding]), []);
 });
 
-test("requires complete execution context when confirmed blockchain evidence is present", () => {
+test("requires common blockchain context for every verdict and full context for confirmed", () => {
+  const commonFields = ["protocol", "rules", "invariant", "attacker_capabilities", "assumptions", "reference_basis"];
+  for (const factory of [confirmed, needsValidation, rejected]) {
+    for (const field of commonFields) {
+      const finding = factory();
+      finding.blockchain = blockchainEvidence();
+      delete finding.blockchain[field];
+      assert(errorsFor([finding]).some((error) => error.includes(`blockchain: missing required field "${field}"`)), `${factory.name}.${field}`);
+    }
+  }
   for (const field of [
     "network", "client_revision", "initial_state", "expected_result", "observed_result", "impact_scope", "inputs",
   ]) {
     const finding = confirmed();
     finding.blockchain = blockchainEvidence();
     delete finding.blockchain[field];
-    assert(errorsFor([finding]).some((error) => error.includes(`blockchain: missing required field "${field}"`)), field);
+    assert(errorsFor([finding]).some((error) => error.includes(`blockchain: missing required field "${field}"`)), `confirmed.${field}`);
   }
 });
 
-test("rejects unknown keys, bad types, empty visible values, and duplicate blockchain entries", () => {
+test("rejects unknown keys, bad types, empty visible values, and duplicate blockchain entries for every verdict", () => {
   const mutations = [
     (blockchain) => { blockchain.extra = "not allowed"; },
     (blockchain) => { blockchain.protocol = 42; },
@@ -291,11 +308,13 @@ test("rejects unknown keys, bad types, empty visible values, and duplicate block
     (blockchain) => { blockchain.inputs = []; },
     (blockchain) => { blockchain.inputs = [{}]; },
   ];
-  for (const mutate of mutations) {
-    const finding = confirmed();
-    finding.blockchain = blockchainEvidence();
-    mutate(finding.blockchain);
-    assert.notEqual(errorsFor([finding]).length, 0);
+  for (const factory of [confirmed, needsValidation, rejected]) {
+    for (const mutate of mutations) {
+      const finding = factory();
+      finding.blockchain = blockchainEvidence();
+      mutate(finding.blockchain);
+      assert.notEqual(errorsFor([finding]).length, 0, `${factory.name}: ${mutate.toString()}`);
+    }
   }
 });
 

@@ -159,9 +159,9 @@ test("accepts a blockchain producer-shaped fixture with standard companion block
     ordinary_attack_class_block: null,
     selected_companion_blocks: [
       "BLOCKCHAIN-CLIENTS.md#State transition validity and determinism",
-      "BLOCKCHAIN-CLIENTS.md#Core discipline (include in every agent prompt for this domain)",
-      "BLOCKCHAIN-CLIENTS.md#Universal moves (apply across the above)",
-      "BLOCKCHAIN-CLIENTS.md#Validation rules (apply before reporting ANY finding here)",
+      "BLOCKCHAIN-CLIENTS.md#Core discipline",
+      "BLOCKCHAIN-CLIENTS.md#Universal moves",
+      "BLOCKCHAIN-CLIENTS.md#Validation rules",
     ],
   });
   assert.deepEqual(errorsFor([fixture]), []);
