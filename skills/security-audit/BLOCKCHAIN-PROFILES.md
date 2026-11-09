@@ -2,13 +2,14 @@
 
 #### When to use this file
 
-Use this file before a blockchain-client audit when the protocol, client, or deployment is unfamiliar. It produces a source-grounded protocol profile and client profile, then composes [BLOCKCHAIN-CLIENTS.md](BLOCKCHAIN-CLIENTS.md)'s core discipline with only the capability blocks the source establishes.
+Use this file before every blockchain-client audit, including familiar protocols and clients, and revalidate it when relevant protocol rules, source revisions, build flags, or deployment paths change. It produces a source-grounded protocol profile and client profile, then composes [BLOCKCHAIN-CLIENTS.md](BLOCKCHAIN-CLIENTS.md)'s core discipline with only the capability blocks the source establishes.
 
 ## Profile discipline
 
 - Derive facts from repository source, tests, fixtures, build metadata, locally available specifications, pinned references, vectors, or executable models. Record the exact path, revision, and line for each consequential fact.
 - Keep protocol rules separate from client behavior: identify what must be true for consensus, what is local admission or operator policy, and what is merely an implementation choice.
 - A reference client is one possible source basis, not a universal fixed implementation. Differential agreement is useful corroboration; disagreement needs the governing rule and a security consequence before it is a finding.
+- When specifications, references, vectors, or models conflict, identify the authoritative basis and revision or record the exact blocker; do not resolve the conflict by assumed majority or client popularity.
 - State unknowns explicitly. Do not invent a chain, quorum, clock, ordering, failure, accounting, trust-root, or upgrade default to fill a blank profile.
 - Select capability blocks independently and compose them when present (for example, stake-based proposer selection can coexist with BFT finality). Do not add a block because a dependency name or generic blockchain term appears.
 
@@ -67,13 +68,13 @@ Client profile
 
 ## Compose and retain the resolved profile
 
-For each blockchain agent prompt, include the `Core discipline`, each selected capability block, `Universal moves`, and `Validation rules` from [BLOCKCHAIN-CLIENTS.md](BLOCKCHAIN-CLIENTS.md), followed by the relevant protocol and client profile fragments. Keep the exact block names so coverage-ledger references remain stable. A profile may be derived for an unfamiliar client from the source and bounded fixtures; unknown facts remain unknown.
+For each blockchain agent prompt, include the `Core discipline`, applicable shared attack-class blocks selected during reconnaissance from [ATTACK-CLASSES.md](ATTACK-CLASSES.md) and other selected companions, each selected capability block, `Universal moves`, and `Validation rules` from [BLOCKCHAIN-CLIENTS.md](BLOCKCHAIN-CLIENTS.md), followed by the relevant protocol and client profile fragments. Keep the exact block names so coverage-ledger references remain stable. Revalidate the profile from the current source even for a familiar client; unknown facts remain unknown.
 
 In full audit mode, the parent stores the resolved profiles as the run artifact `<output-dir>/blockchain-profiles.md` alongside the run's other retained artifacts. In guidance mode, keep the profile inline and do not create a file unless the user asks for one. Profile capture does not change inherited sandbox, write-isolation, budget, or no-live-network controls.
 
 ## Conditional `blockchain` evidence
 
-Add a `blockchain` object to a finding only when the claim depends on protocol or client behavior. Generic findings keep no blockchain object. Use exactly these common fields; do not add chain-specific keys:
+Every blockchain companion-unit finding record retains a `blockchain` object. Generic findings outside such a unit may omit it. Use exactly these common fields; do not add chain-specific keys:
 
 ```text
 protocol: string
@@ -90,18 +91,18 @@ For a `confirmed` record, the same object also requires exactly these additional
 network: string
 client_revision: string
 initial_state: string
-inputs: non-empty array of exact fixture descriptions or bytes
+inputs: ordered non-empty array of strings (exact raw/encoded input or replayable fixture references; preserve order and duplicates)
 expected_result: string
 observed_result: string
 impact_scope: string
 ```
 
-The confirmed fields must describe one bounded reproducible state transition, proof, consensus, accounting, or resource result. `reference_basis` may identify a pinned specification, reference revision, vector, or executable model; it is not permission to assume that implementation is correct.
+The confirmed fields must describe one bounded reproducible state transition, proof, consensus, accounting, or resource result. Preserve repeated messages and schedule order in `inputs`; never deduplicate a replay or schedule fixture. `reference_basis` may identify a pinned specification, reference revision, vector, or executable model; it is not permission to assume that implementation is correct.
 
-For `needs_validation` and `rejected`, include only the common fields that are actually known and omit unknown or confirmed-only fields. Keep the verdict's exact top-level `blockers` and validation plan, or `reason`, respectively. If no protocol-specific evidence is available, omit `blockchain` entirely. A compatibility or reliability mismatch without a security boundary receives no new finding verdict or severity; retain it as a hunter `observations` entry `{kind: conformance|reliability, coverage_id: assigned ID, description: source-grounded note citing source/checks}`.
+For `needs_validation` and `rejected`, the `blockchain` object still carries all six common required fields. Preserve known context, put precise unresolved portions in `rules` and `assumptions`, and keep the verdict's exact top-level `blockers` and validation plan, or `reason`, respectively; never fabricate a value. Optional experiment fields (`network`, `client_revision`, `initial_state`, `inputs`, `expected_result`, `observed_result`, `impact_scope`) may be included when known, while `confirmed` requires all of them; any `inputs` supplied here remains an ordered non-empty string array with duplicates preserved. If no source-grounded invariant or reference basis exists, retain the unit as `blocked` rather than creating an unsupported candidate. A compatibility or reliability mismatch without a security boundary receives no new finding verdict or severity; retain it as a hunter `observations` entry `{kind: conformance|reliability, coverage_id: assigned ID, description: source-grounded note citing source/checks}`.
 
 ## Bounded evidence rules
 
-Use dummy keys, accounts, validators, peers, states, and fixtures. Run only local, bounded checks under the inherited sandbox and promotion controls; never contact a live network, public RPC, deployed validator, bridge, or shared service. If a decisive fact is external, state the exact blocker and owner-observed or safe local plan. Network-wide impact requires an explicit source-grounded attacker capability and bound, not extrapolation from one local client.
+Use dummy keys, accounts, validators, peers, states, and fixtures. Run only local, bounded checks under the inherited sandbox and promotion controls; never contact a live network, public RPC, deployed validator, bridge, or shared service. If a decisive fact is external, state the exact blocker and owner-observed or safe local plan. One-node observation does not establish a network-wide deployed effect; a bounded multi-node or model counterexample can demonstrate a safety/liveness violation under explicit fault and topology assumptions, while live deployment impact remains conditional.
 
 Before finalizing a protocol-specific record, verify the profile's rule, client path, exact fixture, expected/observed result, and affected scope agree. A source mismatch or test-vector disagreement alone is not a consensus split; establish the rule and the concrete security outcome.

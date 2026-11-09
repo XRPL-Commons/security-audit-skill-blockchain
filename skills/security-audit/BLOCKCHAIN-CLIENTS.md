@@ -2,7 +2,7 @@
 
 #### When to use this file
 
-Use this file for nodes, validators, full or archival clients, light clients, relayers, bridges, wallets that sign protocol objects, indexers, and other software whose inputs can affect protocol state, consensus, proofs, or asset accounting. Read [BLOCKCHAIN-PROFILES.md](BLOCKCHAIN-PROFILES.md) first when the protocol or client is unfamiliar. Add the existing binary, messaging, and availability companions only when their source-visible boundaries are present.
+Use this file for nodes, validators, full or archival clients, light clients, relayers, bridges, wallets that sign protocol objects, indexers, and other software whose inputs can affect protocol state, consensus, proofs, or asset accounting. Read [BLOCKCHAIN-PROFILES.md](BLOCKCHAIN-PROFILES.md) before every audit, including familiar protocols and clients, and revalidate it when rules, source revisions, build flags, or deployment modes change. Add the existing binary, messaging, and availability companions only when their source-visible boundaries are present.
 
 Split large targets by state transition, signing/proof verification, consensus, peer and synchronization paths, persistence/recovery, and upgrade boundaries. Select capability blocks below from the resolved protocol profile; capabilities compose.
 
@@ -15,7 +15,7 @@ Split large targets by state transition, signing/proof verification, consensus, 
 - State the protocol roles, membership, fault assumptions, thresholds, ordering, finality, and version/activation scope before calling a behavior unsafe. Do not infer defaults.
 - Canonical bytes, signatures, proofs, and hashes must bind the intended object, context, key or role, version, and commitment; encoding validity alone is not authorization.
 - Account for exact asset units, issuance, fees, rewards, burns, and rounding. Failed-operation effects follow the profile; do not import a generic transaction invariant.
-- Bound any network or economic claim to the attacker capability and topology shown by source or a bounded fixture. A local failure does not establish a network-wide outcome.
+- Bound any network or economic claim to the attacker capability and topology shown by source or a bounded fixture. One-node observation does not establish a network-wide deployed effect; bounded multi-node or model evidence can establish a safety/liveness violation under explicit fault and topology assumptions, while live deployment impact remains conditional.
 - Require only profile-defined guarantees: do not impose local-pool equality, fork absence, a fixed quorum, all-or-nothing failed operations, arbitrary reorder invariance, or synchronized wall clocks.
 - Keep decisive checks local and bounded. Differential agreement is corroboration, not proof, and a mismatch is a lead until the governing rule and security effect are established.
 ```
@@ -78,9 +78,9 @@ Review batch ordering, inbox/outbox or bridge messages, proof/challenge windows,
 
 - Build a protocol profile before judging behavior, then map input or peer message → validation → state/consensus decision → persistence or external effect.
 - Use small initial states and exact fixtures that exercise valid, invalid, duplicate, replayed, reordered, boundary, and versioned cases only where the protocol defines those cases.
-- Compare all in-repository clients, serializers, execution modes, recovery paths, and version gates. Treat disagreement as a lead until the governing rule and security consequence are proven.
+- Within the assignment boundary and designated references, compare in-scope clients, serializers, execution modes, recovery paths, and version gates. Treat disagreement as a lead until the governing rule and security consequence are proven.
 - Re-check normal processing, reorg or rollback, restart, pruning/snapshot restore, synchronization, and mixed-version paths for the same invariant.
-- For network-wide claims, state the topology, identities, stake/weight, resource, and adversary bounds that make the effect reachable; otherwise keep it local or unresolved.
+- For network-wide claims, state the topology, identities, stake/weight, resource, and adversary bounds that make the effect reachable. A single-node observation is insufficient; bounded multi-node or model evidence may establish a protocol violation under explicit assumptions, while deployed impact remains conditional.
 
 ## Validation rules (apply before reporting ANY finding here)
 
@@ -89,6 +89,6 @@ Review batch ordering, inbox/outbox or bridge messages, proof/challenge windows,
 3. For signing, proof, or hash claims, identify the canonical bytes, context/domain, key or role, commitment, and failure path that produces the unauthorized result.
 4. For consensus, membership, fork-choice, or finality claims, state roles, fault model, threshold, ordering, version, and finality assumptions. Do not substitute a generic chain rule.
 5. For accounting claims, show exact units and state deltas, including issuance, fees, rewards, burns, rounding, and the profile-defined failure behavior.
-6. For peer, sync, cost, recovery, or upgrade claims, name the attacker capability and bounded affected scope. Local evidence cannot by itself prove a network-wide security effect.
+6. For peer, sync, cost, recovery, or upgrade claims, name the attacker capability and bounded affected scope. One-node observation does not establish a network-wide deployed effect; a bounded multi-node or model counterexample can demonstrate a safety/liveness violation under explicit fault and topology assumptions, while live deployment impact remains conditional.
 7. Return `confirmed` only with source-complete evidence and a bounded meaningful result. Use `needs_validation` only for an exact external or unavailable fact, with a safe local or owner-observed plan.
 8. Do not assign a finding or severity to a compatibility or reliability mismatch that has no demonstrated security boundary; record it as a hunter `observations` entry `{kind: conformance|reliability, coverage_id: assigned ID, description: source-grounded note citing source/checks}`.
